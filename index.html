@@ -1,0 +1,1625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Live Commerce Simulator</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #faf7f2;
+    --surface: #ffffff;
+    --surface2: #f3efe8;
+    --border: rgba(0,0,0,.07);
+    --accent: #ff6b6b;
+    --accent2: #ee5a24;
+    --warm: #f9a826;
+    --text: #2d2a24;
+    --text2: #6b6560;
+    --dim: #a09890;
+    --green: #2ecc71;
+    --green-soft: #d4efdf;
+    --red: #e74c3c;
+    --red-soft: #fadbd8;
+    --blue: #3498db;
+    --blue-soft: #d6eaf8;
+    --purple: #9b59b6;
+    --purple-soft: #e8daef;
+    --yellow: #f39c12;
+    --r: 16px; --rs: 12px;
+    --shadow: 0 2px 12px rgba(0,0,0,.06);
+    --shadow-lg: 0 8px 30px rgba(0,0,0,.08);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    font-family:'Nunito',system-ui,sans-serif;
+    background:var(--bg);color:var(--text);
+    height:100vh;overflow:hidden;
+  }
+
+  /* ===== HEADER ===== */
+  .header{
+    display:flex;align-items:center;gap:12px;
+    padding:0 20px;height:50px;
+    background:var(--surface);border-bottom:1px solid var(--border);
+    box-shadow:0 1px 4px rgba(0,0,0,.04);z-index:50;position:relative;
+  }
+  .logo{font-size:16px;font-weight:900;letter-spacing:-.3px;white-space:nowrap;display:flex;align-items:center;gap:6px;}
+  .logo-img{height:32px;width:auto;}
+  .logo em{font-style:normal;color:var(--accent);}
+  .sep{width:1px;height:18px;background:var(--border);}
+  .hdr-c{display:flex;gap:6px;align-items:center;flex:1;}
+  .sel{
+    background:var(--surface2);color:var(--text);
+    border:1px solid var(--border);border-radius:8px;
+    padding:6px 12px;font-size:12px;font-family:inherit;font-weight:600;
+    cursor:pointer;max-width:240px;
+  }
+  .sel:disabled{opacity:.4;}
+  .hdr-r{display:flex;gap:6px;align-items:center;margin-left:auto;}
+  .hdr-badge{font-size:10px;font-weight:700;color:var(--dim);background:var(--surface2);padding:4px 10px;border-radius:20px;}
+  .ptxt{font-size:11px;color:var(--text2);font-weight:600;}
+  .hbtn{
+    height:32px;border-radius:8px;border:1px solid var(--border);
+    background:var(--surface);color:var(--text);font-size:13px;
+    font-family:inherit;cursor:pointer;display:flex;align-items:center;
+    gap:4px;padding:0 12px;transition:all .15s;font-weight:600;
+  }
+  .hbtn:hover{background:var(--surface2);transform:translateY(-1px);}
+  .hbtn.primary{background:var(--accent);border:none;color:white;font-weight:700;box-shadow:0 2px 8px rgba(255,107,107,.25);}
+  .hbtn.primary:hover{background:#ff5252;box-shadow:0 4px 12px rgba(255,107,107,.3);}
+  .hbtn.round{width:32px;padding:0;justify-content:center;border-radius:50%;}
+  .hbtn.round.playing{background:var(--accent);border-color:var(--accent);color:white;}
+
+  /* ===== LANDING ===== */
+  .landing{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    height:calc(100vh - 50px);text-align:center;
+    background:#ffffff;
+  }
+  .landing-icon{font-size:64px;margin-bottom:16px;animation:bounce 2s ease-in-out infinite;}
+  @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+  .landing h2{font-size:28px;font-weight:800;letter-spacing:-.5px;margin-bottom:6px;}
+  .landing h2 em{font-style:normal;color:var(--accent);}
+  .landing p{color:var(--text2);max-width:400px;line-height:1.6;font-size:14px;margin-bottom:28px;}
+  .landing-btn{
+    font-size:15px;padding:14px 36px;border-radius:14px;border:none;cursor:pointer;
+    font-family:inherit;font-weight:800;
+    background:var(--accent);color:white;
+    box-shadow:0 4px 20px rgba(255,107,107,.3);transition:all .2s;
+  }
+  .landing-btn:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(255,107,107,.35);}
+
+  /* ===== MAIN ===== */
+  .main{display:none;height:calc(100vh - 50px);flex-direction:column;}
+  .main.active{display:flex;}
+
+  /* ===== BROADCAST BAR (top) ===== */
+  .bc-bar{
+    display:flex;align-items:stretch;
+    background:linear-gradient(135deg,#fff5ee,#fff0f5);
+    border-bottom:1px solid var(--border);
+    height:36%;min-height:190px;max-height:320px;flex-shrink:0;
+    position:relative;overflow:hidden;
+  }
+  .bc-bar::before{
+    content:'';position:absolute;inset:0;
+    background:radial-gradient(ellipse 400px 300px at 10% 50%,rgba(255,107,107,.06),transparent);
+    pointer-events:none;
+  }
+
+  /* ===== STAGE PANEL ===== */
+  .stage{
+    width:420px;flex-shrink:0;
+    display:flex;flex-direction:column;
+    padding:10px 16px;position:relative;
+    background:linear-gradient(180deg,#fff8f0,#fef3eb);
+    border-right:1px solid var(--border);
+  }
+  .stage-label{
+    font-size:9px;font-weight:800;color:var(--dim);text-transform:uppercase;
+    letter-spacing:1px;text-align:center;margin-bottom:6px;
+  }
+  .stage-scene{
+    flex:1;position:relative;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;min-height:0;
+  }
+
+  /* Characters */
+  .char{
+    position:absolute;display:flex;flex-direction:column;align-items:center;
+    transition:all .6s cubic-bezier(.22,1,.36,1);
+  }
+  .char-face{
+    width:58px;height:58px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:28px;border:3px solid white;
+    box-shadow:0 3px 12px rgba(0,0,0,.1);
+    transition:all .5s;
+  }
+  .char-face.glow-green{box-shadow:0 0 20px rgba(46,204,113,.6);border-color:#2ecc71;animation:pulse-green 1.5s ease-in-out infinite;}
+  @keyframes pulse-green{0%,100%{box-shadow:0 0 12px rgba(46,204,113,.4)}50%{box-shadow:0 0 24px rgba(46,204,113,.7)}}
+  .char-face.glow-red{box-shadow:0 0 20px rgba(231,76,60,.5);border-color:#e74c3c;animation:pulse-red 1.5s ease-in-out infinite;}
+  @keyframes pulse-red{0%,100%{box-shadow:0 0 12px rgba(231,76,60,.3)}50%{box-shadow:0 0 24px rgba(231,76,60,.6)}}
+  .char-face.dim{opacity:.3;filter:grayscale(.8);transform:scale(.85);}
+  .char-face.happy{animation:char-happy .6s cubic-bezier(.175,.885,.32,1.275);}
+  @keyframes char-happy{0%{transform:scale(1)}30%{transform:scale(1.25) rotate(-5deg)}60%{transform:scale(1.15) rotate(5deg)}100%{transform:scale(1)}}
+  .char-face.thinking{animation:char-think 1.5s ease-in-out infinite;}
+  @keyframes char-think{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+  .char-face.talking{animation:char-talk .4s ease-in-out infinite alternate;}
+  @keyframes char-talk{0%{transform:scale(1)}100%{transform:scale(1.06)}}
+  .char-face.angry{animation:char-angry .3s ease-in-out 3;}
+  @keyframes char-angry{0%,100%{transform:translateX(0)}25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+  .char-face.wave{animation:char-wave .5s ease-in-out 2;}
+  @keyframes char-wave{0%,100%{transform:rotate(0)}25%{transform:rotate(-10deg)}75%{transform:rotate(10deg)}}
+  .char-face.shrink{transform:scale(.7);opacity:.25;filter:grayscale(1);}
+  .char-face.presenting{animation:char-present 2s ease-in-out infinite;}
+  @keyframes char-present{0%,100%{transform:scale(1) rotate(0)}25%{transform:scale(1.08) rotate(-3deg)}75%{transform:scale(1.08) rotate(3deg)}}
+  .char-face.excited{animation:char-excited .6s ease-in-out infinite;}
+  @keyframes char-excited{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-6px) scale(1.05)}}
+  .char-face.celebrate{animation:char-celebrate 1s ease-in-out;}
+  @keyframes char-celebrate{0%{transform:scale(1) rotate(0)}20%{transform:scale(1.3) rotate(-10deg)}40%{transform:scale(1.2) rotate(10deg)}60%{transform:scale(1.25) rotate(-5deg)}100%{transform:scale(1) rotate(0)}}
+  .char-face.sad{animation:char-sad 2s ease-in-out infinite;}
+  @keyframes char-sad{0%,100%{transform:translateY(0)}50%{transform:translateY(3px) scale(.95)}}
+  .char-face.writing{animation:char-write .8s ease-in-out infinite;}
+  @keyframes char-write{0%,100%{transform:rotate(0)}50%{transform:rotate(-3deg) translateX(-2px)}}
+  .char-name{
+    font-size:9px;font-weight:800;margin-top:3px;
+    text-align:center;white-space:nowrap;
+  }
+  .char-status{
+    font-size:8px;font-weight:700;margin-top:1px;
+    color:var(--dim);text-align:center;
+  }
+  .char-bubble{
+    position:absolute;bottom:100%;left:50%;transform:translateX(-50%);
+    margin-bottom:6px;padding:4px 10px;border-radius:12px;
+    font-size:10px;font-weight:700;white-space:nowrap;
+    background:white;border:1px solid var(--border);
+    box-shadow:0 2px 8px rgba(0,0,0,.06);
+    animation:bubble-pop .4s cubic-bezier(.22,1,.36,1);
+    z-index:10;
+  }
+  .char-bubble::after{
+    content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);
+    border:5px solid transparent;border-top-color:white;
+  }
+  @keyframes bubble-pop{from{opacity:0;transform:translateX(-50%) scale(.7) translateY(4px)}to{opacity:1;transform:translateX(-50%) scale(1) translateY(0)}}
+
+  /* Connection lines */
+  .stage-lines{position:absolute;inset:0;pointer-events:none;z-index:0;}
+  .stage-line{
+    stroke-dasharray:4 3;stroke-width:1.5;fill:none;
+    animation:dash-flow 1s linear infinite;
+  }
+  @keyframes dash-flow{to{stroke-dashoffset:-7}}
+
+  /* Floating particles */
+  .stage-particle{
+    position:absolute;pointer-events:none;font-size:12px;
+    animation:particle-float 2s ease-out forwards;opacity:0;
+  }
+  @keyframes particle-float{
+    0%{opacity:0;transform:translateY(0) scale(.5);}
+    20%{opacity:1;transform:translateY(-8px) scale(1);}
+    100%{opacity:0;transform:translateY(-40px) scale(.4);}
+  }
+
+  .stage-status{
+    position:absolute;bottom:2px;left:0;right:0;
+    text-align:center;font-size:9px;font-weight:700;
+    color:var(--text2);
+    padding:3px 6px;background:rgba(255,255,255,.7);border-radius:8px;
+    margin:0 12px;
+  }
+  .live-dot{
+    display:inline-block;width:6px;height:6px;border-radius:50%;
+    background:var(--accent);margin-right:3px;
+    animation:bk 1.5s ease-in-out infinite;
+  }
+  @keyframes bk{0%,100%{opacity:1}50%{opacity:.3}}
+
+  .bc-product{
+    width:260px;flex-shrink:0;padding:14px 16px;
+    display:flex;flex-direction:column;justify-content:center;
+    border-left:1px solid var(--border);border-right:1px solid var(--border);
+    overflow-y:auto;
+  }
+  .p-cat{
+    display:inline-block;font-size:9px;text-transform:uppercase;
+    letter-spacing:.8px;font-weight:700;color:var(--blue);
+    background:var(--blue-soft);padding:3px 8px;border-radius:6px;
+    margin-bottom:6px;width:fit-content;
+  }
+  .p-title{font-size:12px;font-weight:700;line-height:1.5;margin-bottom:8px;color:var(--text2);}
+  .p-row{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;}
+  .p-price{font-size:24px;font-weight:900;color:var(--accent);letter-spacing:-.5px;}
+  .p-disc{
+    font-size:10px;font-weight:800;background:var(--accent);
+    padding:2px 8px;border-radius:6px;color:white;
+  }
+
+  .bc-script{
+    flex:1;display:flex;gap:0;padding:12px 16px;overflow:hidden;min-width:0;
+  }
+  .bc-half{
+    flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;
+  }
+  .bc-half-head{
+    font-size:10px;font-weight:700;color:var(--dim);
+    text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;
+    display:flex;align-items:center;gap:4px;flex-shrink:0;
+  }
+  .bc-arrow{
+    width:36px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+    font-size:20px;color:var(--dim);opacity:0;transition:opacity .4s;
+  }
+  .bc-arrow.vis{opacity:1;animation:arrow-pulse 1s ease-in-out 2;}
+  @keyframes arrow-pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.5;transform:scale(1.2);}}
+  .strategy-text{
+    flex:1;overflow-y:auto;min-height:0;
+    font-size:11.5px;line-height:1.7;color:var(--text2);
+    padding:10px 14px;background:white;border-radius:var(--rs);
+    border:1px solid var(--border);white-space:pre-wrap;word-wrap:break-word;
+  }
+  .strategy-text .typed{color:var(--text);}
+  .script-text{
+    flex:1;overflow-y:auto;min-height:0;
+    font-size:12px;line-height:1.7;color:var(--text2);
+    padding:10px 14px;background:white;border-radius:var(--rs);
+    border:1px solid var(--border);
+  }
+  .script-text .typed{color:var(--text);}
+  .scur{
+    display:inline-block;width:2px;height:15px;
+    background:var(--accent);animation:cbk .6s ease-in-out infinite;
+    vertical-align:middle;margin-left:1px;
+  }
+  @keyframes cbk{0%,100%{opacity:1}50%{opacity:0}}
+
+  /* ===== BUYERS AREA ===== */
+  .buyers-area{flex:1;overflow-y:auto;padding:16px 20px;min-height:0;}
+  .buyers-grid{
+    display:grid;grid-template-columns:repeat(3,1fr);
+    gap:14px;
+  }
+
+  /* ===== BUYER CARD ===== */
+  .buyer-card{
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:var(--r);overflow:hidden;
+    display:flex;flex-direction:column;
+    box-shadow:var(--shadow);transition:all .2s;
+  }
+  .buyer-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-2px);}
+
+  .bc-hd{
+    display:flex;align-items:center;gap:10px;
+    padding:12px 16px;background:var(--surface2);
+    border-bottom:1px solid var(--border);flex-shrink:0;
+  }
+  .bc-av{
+    width:36px;height:36px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:18px;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.06);
+    border:2px solid white;
+  }
+  .bc-inf{flex:1;}
+  .bc-nm{font-size:13px;font-weight:800;}
+  .bc-sub{font-size:9px;color:var(--dim);font-weight:600;}
+  .bc-tag{font-size:10px;padding:3px 12px;border-radius:20px;font-weight:700;transition:all .3s;}
+  .tw{background:var(--surface2);color:var(--dim);border:1px solid var(--border);}
+  .tb{background:var(--green-soft);color:var(--green);border:1px solid rgba(46,204,113,.3);}
+  .tp{background:var(--red-soft);color:var(--red);border:1px solid rgba(231,76,60,.2);}
+
+  .bc-bd{flex:1;overflow-y:auto;min-height:0;}
+  .bc-sec{padding:12px 16px;border-bottom:1px solid var(--border);display:none;}
+  .bc-sec.vis{display:block;animation:si .4s cubic-bezier(.22,1,.36,1);}
+  @keyframes si{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+  .slbl{
+    font-size:10px;text-transform:uppercase;letter-spacing:.6px;
+    color:var(--dim);margin-bottom:8px;font-weight:700;
+    display:flex;align-items:center;gap:4px;
+  }
+
+  /* ===== CHAT BUBBLES ===== */
+  .chat{display:flex;flex-direction:column;gap:8px;max-height:200px;overflow-y:auto;scroll-behavior:smooth;}
+
+  .bbl{
+    max-width:82%;padding:10px 14px;font-size:12px;line-height:1.55;
+    animation:bi .3s cubic-bezier(.22,1,.36,1);position:relative;
+  }
+  @keyframes bi{from{opacity:0;transform:scale(.95) translateY(4px)}to{opacity:1;transform:scale(1) translateY(0)}}
+
+  .bbl-wrap{display:flex;gap:6px;align-items:flex-start;animation:bi .3s cubic-bezier(.22,1,.36,1);}
+  .bbl-wrap.b{align-self:flex-start;}
+  .bbl-wrap.s{align-self:flex-end;flex-direction:row-reverse;}
+  .bbl-av{
+    width:24px;height:24px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:12px;flex-shrink:0;margin-top:2px;
+    box-shadow:0 1px 3px rgba(0,0,0,.08);border:1.5px solid white;
+  }
+  .bbl.b{
+    background:white;border:1px solid var(--border);
+    border-radius:16px 16px 16px 4px;
+    box-shadow:0 1px 4px rgba(0,0,0,.04);
+  }
+  .bbl.s{
+    background:linear-gradient(135deg,#fff0ed,#ffe8e0);
+    border:1px solid rgba(255,107,107,.12);
+    border-radius:16px 16px 4px 16px;
+  }
+  .bbl-n{font-size:10px;font-weight:700;margin-bottom:3px;}
+  .bbl-n.bn{color:var(--blue);}
+  .bbl-n.sn{color:var(--accent);}
+  .bbl-t{color:var(--text2);word-wrap:break-word;}
+
+  /* ===== THINKING ===== */
+  .think-cloud{
+    display:flex;align-items:center;gap:8px;
+    padding:12px 16px;background:var(--surface2);border-radius:var(--rs);
+    border:1px solid var(--border);
+    animation:si .3s ease-out;
+  }
+  .think-emoji{font-size:20px;animation:think-wobble 1s ease-in-out infinite;}
+  @keyframes think-wobble{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(5deg)}}
+  .think-text{font-size:12px;color:var(--text2);font-weight:600;}
+  .dtl{display:inline-flex;gap:3px;margin-left:4px;}
+  .dtl span{
+    width:5px;height:5px;border-radius:50%;background:var(--dim);
+    animation:dtb 1.2s ease-in-out infinite;
+  }
+  .dtl span:nth-child(2){animation-delay:.15s;}
+  .dtl span:nth-child(3){animation-delay:.3s;}
+  @keyframes dtb{0%,60%,100%{transform:translateY(0);opacity:.3}30%{transform:translateY(-5px);opacity:1}}
+
+  /* ===== DECISION ===== */
+  .dec{
+    padding:18px;border-radius:var(--rs);text-align:center;
+    position:relative;overflow:hidden;
+    animation:dp .6s cubic-bezier(.175,.885,.32,1.275);
+  }
+  @keyframes dp{from{transform:scale(.5);opacity:0}to{transform:scale(1);opacity:1}}
+  .dec.bought{background:linear-gradient(135deg,#d5f5e3,#e8f8f5);border:2px solid var(--green);}
+  .dec.passed{background:linear-gradient(135deg,#fdf2f2,#fef9f9);border:2px solid #e0e0e0;}
+  .dec .confetti{position:absolute;inset:0;pointer-events:none;overflow:hidden;}
+  .dec .confetti i{
+    position:absolute;width:6px;height:6px;border-radius:50%;
+    animation:confetti-fall 1.5s ease-out forwards;opacity:0;
+  }
+  @keyframes confetti-fall{
+    0%{opacity:1;transform:translateY(-20px) rotate(0) scale(1);}
+    100%{opacity:0;transform:translateY(60px) rotate(360deg) scale(0.3);}
+  }
+  .dec-i{font-size:36px;margin-bottom:6px;}
+  .dec-l{font-size:16px;font-weight:900;}
+  .dec-l.g{color:var(--green);}
+  .dec-l.r{color:var(--text2);}
+  .dec-q{font-size:11px;color:var(--text2);margin-top:2px;font-weight:600;}
+  .dec-rs{
+    font-size:11px;color:var(--dim);margin-top:8px;line-height:1.5;
+    text-align:left;
+  }
+
+  /* ===== CS ===== */
+  .cs-b{
+    display:inline-flex;align-items:center;gap:4px;
+    padding:5px 14px;border-radius:20px;
+    font-size:11px;font-weight:700;margin-top:8px;
+    animation:dp .4s cubic-bezier(.175,.885,.32,1.275);
+  }
+  .cs-b.refunded{background:#fef9e7;border:1px solid rgba(243,156,18,.3);color:var(--yellow);}
+  .cs-b.exchanged{background:var(--blue-soft);border:1px solid rgba(52,152,219,.3);color:var(--blue);}
+  .cs-b.delivered{background:var(--green-soft);border:1px solid rgba(46,204,113,.3);color:var(--green);}
+
+  /* ===== REVIEW ===== */
+  .rvw{animation:si .3s ease-out;}
+  .rv-r{display:flex;justify-content:space-between;align-items:center;font-size:11px;padding:3px 0;}
+  .rv-l{color:var(--dim);font-weight:600;}
+  .rv-s{color:var(--yellow);font-size:12px;letter-spacing:.5px;}
+  .rv-q{
+    font-size:11px;color:var(--text2);font-style:italic;line-height:1.5;
+    margin-top:6px;padding:8px 12px;background:var(--surface2);border-radius:8px;
+  }
+  .rct{
+    display:inline-flex;align-items:center;gap:3px;
+    font-size:10px;padding:4px 10px;border-radius:20px;margin-top:6px;font-weight:700;
+  }
+  .rct.y{background:var(--green-soft);color:var(--green);}
+  .rct.n{background:var(--red-soft);color:var(--red);}
+
+  /* ===== MORE CARD ===== */
+  .more{
+    background:var(--surface);border:2px dashed rgba(0,0,0,.08);
+    border-radius:var(--r);display:flex;flex-direction:row;
+    align-items:center;justify-content:center;gap:10px;
+    text-align:center;transition:all .2s;
+    padding:12px 16px;max-height:80px;
+  }
+  .more:hover{border-color:rgba(0,0,0,.15);background:var(--surface2);}
+  .more-avs{display:flex;justify-content:center;}
+  .more-avs .ma{
+    width:32px;height:32px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:16px;margin-left:-6px;border:2px solid white;
+    box-shadow:0 2px 6px rgba(0,0,0,.06);
+  }
+  .more-avs .ma:first-child{margin-left:0;}
+  .more-t{font-size:14px;font-weight:800;color:var(--text2);}
+  .more-s{font-size:11px;color:var(--dim);font-weight:600;}
+
+  /* ===== STATS PANEL ===== */
+  .stats-panel{
+    margin-top:16px;background:var(--surface);
+    border:1px solid var(--border);border-radius:var(--r);
+    box-shadow:var(--shadow);overflow:hidden;
+    display:none;
+  }
+  .stats-panel.vis{display:block;animation:si .4s cubic-bezier(.22,1,.36,1);}
+  .stats-head{
+    padding:10px 16px;background:var(--surface2);
+    border-bottom:1px solid var(--border);
+    font-size:12px;font-weight:800;display:flex;align-items:center;gap:6px;
+  }
+  .stats-body{
+    display:grid;grid-template-columns:1fr 1fr;
+    gap:0;
+  }
+  .stats-col{padding:14px 18px;}
+  .stats-col+.stats-col{border-left:1px solid var(--border);}
+  .stats-col-title{font-size:10px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;}
+  .stat-row{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:5px 0;border-bottom:1px solid rgba(0,0,0,.03);
+    font-size:12px;
+  }
+  .stat-row:last-child{border-bottom:none;}
+  .stat-label{color:var(--text2);font-weight:600;display:flex;align-items:center;gap:4px;flex-shrink:0;}
+  .stat-val{font-weight:800;color:var(--text);}
+  .stat-bar-wrap{width:80px;height:8px;background:var(--surface2);border-radius:4px;overflow:hidden;margin-left:8px;}
+  .stat-bar-fill{height:100%;border-radius:4px;transition:width .6s ease-out;}
+  .stat-pills{display:flex;gap:4px;flex-wrap:wrap;}
+  .stat-pill{
+    font-size:10px;font-weight:700;padding:2px 8px;border-radius:12px;
+    display:flex;align-items:center;gap:3px;
+  }
+
+  /* ===== BEST SELLER ===== */
+  .best-banner{
+    display:flex;align-items:center;gap:14px;
+    padding:14px 20px;
+    background:linear-gradient(135deg,#fffbea,#fff3cd);
+    border-bottom:1px solid rgba(243,156,18,.2);
+  }
+  .best-trophy{font-size:32px;animation:trophy-bounce 1s ease-in-out infinite;}
+  @keyframes trophy-bounce{0%,100%{transform:rotate(-5deg) scale(1);}50%{transform:rotate(5deg) scale(1.1);}}
+  .best-info{flex:1;}
+  .best-title{font-size:13px;font-weight:800;color:#e67e22;text-transform:uppercase;letter-spacing:.5px;}
+  .best-name{font-size:16px;font-weight:900;color:var(--text);margin-top:2px;}
+  .best-detail{font-size:11px;color:var(--text2);margin-top:2px;display:flex;gap:8px;flex-wrap:wrap;}
+  .best-stat{
+    display:inline-flex;align-items:center;gap:3px;
+    padding:2px 8px;border-radius:12px;font-weight:700;
+    background:rgba(46,204,113,.1);color:var(--green);font-size:10px;
+  }
+
+  /* ===== ISSUE ALERT ===== */
+  .issue-alert{
+    display:flex;align-items:center;gap:10px;
+    padding:12px 14px;border-radius:var(--rs);
+    background:linear-gradient(135deg,#fff3e0,#fff8e1);
+    border:1.5px solid #ffb74d;
+    animation:si .4s cubic-bezier(.22,1,.36,1);
+  }
+  .issue-icon{font-size:24px;flex-shrink:0;animation:shake .5s ease-in-out;}
+  @keyframes shake{0%,100%{transform:rotate(0)}25%{transform:rotate(-8deg)}75%{transform:rotate(8deg)}}
+  .issue-body{flex:1;}
+  .issue-title{font-size:11px;font-weight:800;color:#e65100;text-transform:uppercase;letter-spacing:.5px;}
+  .issue-desc{font-size:12px;font-weight:600;color:#bf360c;margin-top:2px;}
+
+  /* ===== PERSONA BARS ===== */
+  .persona{margin-top:6px;width:100%;}
+  .persona-title{font-size:8px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px;}
+  .ptr{display:flex;align-items:center;gap:0;margin-bottom:3px;font-size:9px;height:14px;}
+  .ptr-l,.ptr-r{width:72px;font-weight:600;line-height:1;white-space:nowrap;}
+  .ptr-l{text-align:right;padding-right:4px;}
+  .ptr-r{text-align:left;padding-left:4px;}
+  .ptr-active{color:var(--text);}
+  .ptr-dim{color:#ccc;}
+  .ptr-track{flex:1;height:10px;background:var(--surface2);border-radius:5px;position:relative;overflow:hidden;}
+  .ptr-center{position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(0,0,0,.15);z-index:2;}
+  .ptr-fill{position:absolute;top:1px;bottom:1px;border-radius:4px;z-index:1;transition:width .5s ease-out;}
+  .ptr-val{position:absolute;top:50%;transform:translateY(-50%);font-size:7px;font-weight:700;color:white;z-index:3;text-shadow:0 0 2px rgba(0,0,0,.3);}
+
+  /* ===== INTERACTION INDICATORS ===== */
+  .interact-badge{
+    display:inline-flex;align-items:center;gap:4px;
+    font-size:9px;font-weight:700;color:var(--accent);
+    padding:2px 8px;border-radius:10px;
+    background:rgba(255,107,107,.06);
+    animation:interact-pulse 2s ease-in-out infinite;
+  }
+  @keyframes interact-pulse{0%,100%{opacity:1}50%{opacity:.5}}
+  .float-reactions{
+    position:absolute;top:0;right:8px;bottom:0;width:30px;
+    pointer-events:none;overflow:hidden;
+  }
+  .float-emoji{
+    position:absolute;bottom:-20px;
+    font-size:14px;animation:float-up 2.5s ease-out forwards;opacity:0;
+  }
+  @keyframes float-up{
+    0%{opacity:0;transform:translateY(0) scale(.5);}
+    15%{opacity:1;transform:translateY(-10px) scale(1);}
+    100%{opacity:0;transform:translateY(-80px) scale(.6);}
+  }
+
+  ::-webkit-scrollbar{width:5px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+  ::-webkit-scrollbar-thumb{background:rgba(0,0,0,.08);border-radius:3px;}
+  ::-webkit-scrollbar-thumb:hover{background:rgba(0,0,0,.15);}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo"><img class="logo-img" src="retailsim_v1.png" alt="RetailSim"> <em>RetailSim</em></div>
+  <div class="sep"></div>
+  <div class="hdr-c">
+    <span style="font-size:11px;font-weight:700;color:var(--dim);">Product:</span>
+    <select class="sel" id="prodSel" disabled><option>Load a JSON file</option></select>
+    <span style="font-size:11px;font-weight:700;color:var(--dim);margin-left:4px;">Seller:</span>
+    <select class="sel" id="selSel" disabled style="max-width:160px"><option>Seller</option></select>
+  </div>
+  <div class="hdr-r">
+    <span class="ptxt" id="prog"></span>
+    <button class="hbtn round" id="btnPlay" title="Play">▶</button>
+    <button class="hbtn round" onclick="restart()" title="Restart">↻</button>
+    <select class="sel" id="spdSel" style="max-width:58px">
+      <option value="0.5">0.5x</option><option value="1" selected>1x</option>
+      <option value="2">2x</option><option value="4">4x</option><option value="8">8x</option><option value="9999">Instant</option>
+    </select>
+    <input type="file" id="fileInput" accept=".json" style="display:none">
+  </div>
+</div>
+
+<div class="landing" id="landing">
+  <img src="retailsim_v1.png" alt="RetailSim" style="height:140px;margin-bottom:12px;">
+  <h2><em>RetailSim</em></h2>
+  <p style="font-size:22px;color:var(--text);font-weight:800;margin-bottom:6px;max-width:750px;line-height:1.4;letter-spacing:-.3px;">What Makes a Sale? Simulating End-to-End<br>Seller-Buyer Retail Dynamics with LLM Agents</p>
+  <p style="font-size:14px;color:var(--text2);margin-bottom:20px;max-width:750px;">Jeonghwan Choi, Jibin Hwang, Gyeonghun Sun, Minjeong Ban, Taewon Yun, Hyeonjae Cheon, Hwanjun Song</p>
+  <p style="max-width:700px;margin-bottom:24px;">Watch AI seller agents craft sales scripts while buyer agents react, chat, deliberate, and make purchase decisions — all at once!</p>
+  <button class="landing-btn" onclick="loadSample()" style="font-size:18px;padding:16px 48px;border-radius:16px;">▶ Start Demo</button>
+</div>
+
+<div class="main" id="mainLayout">
+  <div class="bc-bar">
+    <div class="stage">
+      <div class="stage-label"><span class="live-dot"></span> Live Stage</div>
+      <div class="stage-scene" id="stageScene"></div>
+      <div class="stage-status" id="stageStatus"></div>
+    </div>
+    <div class="bc-product">
+      <div class="p-cat" id="pCat">-</div>
+      <div class="p-title" id="pTitle">-</div>
+      <div class="p-row">
+        <span class="p-price" id="pPrice">-</span>
+        <span class="p-disc" id="pDisc" style="display:none">-</span>
+      </div>
+      <div id="sPersona" style="margin-top:8px;"></div>
+    </div>
+    <div class="bc-script">
+      <div class="bc-half">
+        <div class="bc-half-head">🎯 Strategy</div>
+        <div class="strategy-text" id="strategyBox"><span class="typed" id="stratTyped"></span><span class="scur" id="stratCursor"></span></div>
+      </div>
+      <div class="bc-arrow" id="bcArrow">→</div>
+      <div class="bc-half">
+        <div class="bc-half-head">📜 Sales Script</div>
+        <div class="script-text" id="scriptBox"><span class="typed" id="scriptTyped"></span><span class="scur" id="sCursor"></span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="buyers-area">
+    <div class="buyers-grid" id="bGrid"></div>
+    <div id="moreWrap"></div>
+    <div class="stats-panel" id="statsPanel">
+      <div id="bestBanner"></div>
+      <div class="stats-head">📊 Simulation Statistics (All Buyers)</div>
+      <div class="stats-body" id="statsBody"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Model config — colors only (names/emojis assigned dynamically)
+const ALLOWED_MODELS=['Qwen-235B','DeepSeek-V3.2','GPT-oss-120B','Gemini-3.1-Pro','GPT-5.4'];
+const MC={
+  'DeepSeek-V3.2':{c:'#5b8dee'},
+  'Qwen-235B':{c:'#f0932b'},
+  'GPT-oss-120B':{c:'#6ab04c'},
+  'Gemini-3.1-Pro':{c:'#be2edd'},
+  'GPT-5.4':{c:'#22a6b3'},
+};
+const BUYER_EMOJIS=['👩','👨','🧑','👩‍🦰','👨‍🦱'];
+const SELLER_EMOJI='🧑‍💼';
+
+// Persona data from analysis (Assertive/Friendly/Rational for seller, Picky/PriceSens/Rational for buyer)
+const PERSONA={
+  'Qwen-235B':    {seller:{Assertive:81.8,Friendly:84.5,Rational:32.3}, buyer:{Picky:24.1,PriceSens:39.5,Rational:30.2}},
+  'GPT-oss-120B': {seller:{Assertive:75.2,Friendly:71.7,Rational:48.9}, buyer:{Picky:24.0,PriceSens:37.0,Rational:52.2}},
+  'DeepSeek-V3.2':{seller:{Assertive:76.5,Friendly:43.4,Rational:38.7}, buyer:{Picky:33.9,PriceSens:37.3,Rational:48.6}},
+  'Gemini-3.1-Pro':{seller:{Assertive:70.9,Friendly:83.1,Rational:38.1}, buyer:{Picky:6.1,PriceSens:58.3,Rational:29.3}},
+  'GPT-5.4':      {seller:{Assertive:44.7,Friendly:33.8,Rational:43.2}, buyer:{Picky:28.2,PriceSens:31.3,Rational:58.4}},
+};
+
+// Persona bar colors
+const PCOLORS={Assertive:'#FF5252',Friendly:'#64B5F6',Rational:'#66BB6A',Picky:'#C2185B',PriceSens:'#5C6BC0'};
+
+function personaHTML(model, role){
+  const p=PERSONA[model]; if(!p) return '';
+  const data=role==='seller'?p.seller:p.buyer;
+  const traits=role==='seller'
+    ?[['Passive','Assertive',data.Assertive,PCOLORS.Assertive],['Reserved','Friendly',data.Friendly,PCOLORS.Friendly],['Emotional','Rational',data.Rational,PCOLORS.Rational]]
+    :[['Easygoing','Picky',data.Picky,PCOLORS.Picky],['Indifferent','Price-Sens.',data.PriceSens,PCOLORS.PriceSens],['Emotional','Rational',data.Rational,PCOLORS.Rational]];
+  return `<div class="persona"><div class="persona-title">Persona</div>${traits.map(([lo,hi,val,col])=>{
+    const isRight=val>=50;
+    const barW=Math.abs(val-50);
+    const fillLeft=isRight?50:(50-barW);
+    const loPct=Math.round(100-val);
+    const hiPct=Math.round(val);
+    return `<div class="ptr">
+      <span class="ptr-l ${isRight?'ptr-dim':'ptr-active'}">${isRight?lo:lo+' '+loPct+'%'}</span>
+      <div class="ptr-track">
+        <div class="ptr-center"></div>
+        <div class="ptr-fill" style="left:${fillLeft}%;width:${barW}%;background:${col};opacity:.7;"></div>
+      </div>
+      <span class="ptr-r ${isRight?'ptr-active':'ptr-dim'}">${isRight?hi+' '+hiPct+'%':hi}</span>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+const mc=m=>MC[m]||{c:'#888'};
+
+let sim=null,pIdx=0,seller='',speed=1,timers=[],playing=false;
+let completedProducts=new Set();
+const buyerPositions=[{left:18,top:55},{left:50,top:60},{left:82,top:55}]; // track which product indices have been analyzed
+const $fi=document.getElementById('fileInput');
+
+$fi.addEventListener('change',e=>{
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=ev=>{try{sim=JSON.parse(ev.target.result);init();}catch(err){alert('Error: '+err.message);}};
+  r.readAsText(f);
+});
+
+function loadSample(){
+  fetch('sample_data.json')
+    .then(r=>{if(!r.ok)throw new Error('Sample data not found');return r.json();})
+    .then(data=>{sim=data;init();})
+    .catch(err=>alert('Could not load sample data: '+err.message));
+}
+
+function init(){
+  document.getElementById('landing').style.display='none';
+  document.getElementById('mainLayout').classList.add('active');
+  const ps=document.getElementById('prodSel');ps.disabled=false;
+  ps.innerHTML=sim.products.map((p,i)=>`<option value="${i}">[${i+1}] ${p.product_title.slice(0,38)}...</option>`).join('');
+  ps.onchange=()=>{pIdx=+ps.value;load();};
+  const sellerModels=sim.config.seller_models.filter(m=>ALLOWED_MODELS.includes(m));
+  const ss=document.getElementById('selSel');ss.disabled=false;
+  ss.innerHTML=sellerModels.map((m,i)=>`<option value="${m}">🧑‍💼 Seller ${i+1}</option>`).join('');
+  ss.onchange=()=>{seller=ss.value;load();};
+  document.getElementById('spdSel').onchange=function(){speed=+this.value;};
+  document.getElementById('btnPlay').onclick=togglePlay;
+  seller=sellerModels[0];load();
+}
+
+function load(){
+  stopAll();stopParticles();stageClearLines();
+  document.getElementById('statsPanel').classList.remove('vis');
+  const p=sim.products[pIdx],bc=p.broadcasts[seller];if(!bc)return;
+  const c=mc(seller);
+  const sellerModelsFiltered=sim.config.seller_models.filter(m=>ALLOWED_MODELS.includes(m));
+  const sellerIdx=sellerModelsFiltered.indexOf(seller);
+  document.getElementById('sPersona').innerHTML=`
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+      <div style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;background:${c.c}15;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,.06);">${SELLER_EMOJI}</div>
+      <span style="font-size:12px;font-weight:800;">Seller ${sellerIdx+1}</span>
+    </div>
+    ${personaHTML(seller,'seller')}`;
+  document.getElementById('pCat').textContent=p.product_category;
+  document.getElementById('pTitle').textContent=p.product_title;
+  document.getElementById('pPrice').textContent=`$${p.discount_price.toFixed(2)}`;
+  const disc=document.getElementById('pDisc');
+  if(p.discount_rate>0){disc.style.display='inline';disc.textContent=`-${(p.discount_rate*100).toFixed(0)}%`;}else disc.style.display='none';
+  document.getElementById('scriptTyped').textContent='';document.getElementById('sCursor').style.display='none';
+  document.getElementById('stratTyped').textContent='';document.getElementById('stratCursor').style.display='none';
+  document.getElementById('bcArrow').classList.remove('vis');
+
+  const allLogs=p.buyer_logs.filter(bl=>bl.seller_model===seller&&ALLOWED_MODELS.includes(bl.buyer_model));
+  // Preferred buyer order
+  const PREF=['Qwen-235B','Gemini-3.1-Pro','GPT-5.4','DeepSeek-V3.2','GPT-oss-120B'];
+  const sorted=PREF.map(m=>allLogs.find(bl=>bl.buyer_model===m)).filter(Boolean);
+  const remaining=allLogs.filter(bl=>!PREF.includes(bl.buyer_model));
+  const logs=[...sorted,...remaining];
+  const SHOW=3,vis=logs.slice(0,SHOW),rest=logs.slice(SHOW);
+  const grid=document.getElementById('bGrid');grid.innerHTML='';
+
+  vis.forEach((bl,i)=>{
+    const b=mc(bl.buyer_model),card=document.createElement('div');
+    const bEmoji=BUYER_EMOJIS[i%BUYER_EMOJIS.length];
+    const bName=`Buyer ${i+1}`;
+    card.className='buyer-card';card.id=`b${i}`;
+    card.innerHTML=`
+      <div class="bc-hd" style="position:relative;">
+        <div class="bc-av" style="background:${b.c}15">${bEmoji}</div>
+        <div class="bc-inf"><div class="bc-nm">${bName}</div></div>
+        <div class="bc-tag tw" id="tag${i}">👁 watching</div>
+        <div class="float-reactions" id="fr${i}"></div>
+      </div>
+      <div class="bc-bd">
+        <div class="bc-sec vis" id="sp${i}" style="border-bottom:1px solid var(--border)">${personaHTML(bl.buyer_model,'buyer')}</div>
+        <div class="bc-sec" id="sq${i}"><div class="slbl">💬 Pre-Purchase Q&A</div><div class="chat" id="cq${i}"></div></div>
+        <div class="bc-sec" id="sd${i}"><div class="slbl">🤔 Purchase Decision</div><div id="cd${i}"></div></div>
+        <div class="bc-sec" id="si${i}"><div id="ci${i}"></div></div>
+        <div class="bc-sec" id="sc${i}"><div class="slbl">📞 Post-Purchase CS</div><div class="chat" id="cc${i}"></div><div id="cr${i}"></div></div>
+        <div class="bc-sec" id="sr${i}"><div class="slbl">⭐ Review</div><div id="rv${i}"></div></div>
+      </div>`;
+    grid.appendChild(card);
+  });
+
+  const moreWrap=document.getElementById('moreWrap');
+  moreWrap.innerHTML='';
+  if(rest.length>0){
+    // Build hidden buyer cards
+    const hiddenCards=rest.map((bl,j)=>{
+      const idx=SHOW+j;
+      const b=mc(bl.buyer_model);
+      const bEmoji=BUYER_EMOJIS[idx%BUYER_EMOJIS.length];
+      return `<div class="buyer-card" id="b${idx}" style="display:none;">
+        <div class="bc-hd" style="position:relative;">
+          <div class="bc-av" style="background:${b.c}15">${bEmoji}</div>
+          <div class="bc-inf"><div class="bc-nm">Buyer ${idx+1}</div></div>
+          <div class="bc-tag tw" id="tag${idx}">👁 watching</div>
+          <div class="float-reactions" id="fr${idx}"></div>
+        </div>
+        <div class="bc-bd">
+          <div class="bc-sec vis" id="sp${idx}" style="border-bottom:1px solid var(--border)">${personaHTML(bl.buyer_model,'buyer')}</div>
+          <div class="bc-sec" id="sq${idx}"><div class="slbl">💬 Pre-Purchase Q&A</div><div class="chat" id="cq${idx}"></div></div>
+          <div class="bc-sec" id="sd${idx}"><div class="slbl">🤔 Purchase Decision</div><div id="cd${idx}"></div></div>
+          <div class="bc-sec" id="si${idx}"><div id="ci${idx}"></div></div>
+          <div class="bc-sec" id="sc${idx}"><div class="slbl">📞 Post-Purchase CS</div><div class="chat" id="cc${idx}"></div><div id="cr${idx}"></div></div>
+          <div class="bc-sec" id="sr${idx}"><div class="slbl">⭐ Review</div><div id="rv${idx}"></div></div>
+        </div>
+      </div>`;
+    }).join('');
+
+    moreWrap.innerHTML=`
+      <div style="text-align:center;margin-top:10px;">
+        <button id="toggleMoreBtn" onclick="toggleMoreBuyers()" style="
+          display:inline-flex;align-items:center;gap:6px;
+          padding:8px 20px;border-radius:20px;border:1px solid var(--border);
+          background:var(--surface);color:var(--text2);font-size:12px;font-weight:700;
+          font-family:inherit;cursor:pointer;transition:all .2s;box-shadow:var(--shadow);
+        ">
+          <span>${rest.map((bl,j)=>`<span style="font-size:14px;">${BUYER_EMOJIS[(SHOW+j)%BUYER_EMOJIS.length]}</span>`).join('')}</span>
+          <span id="toggleMoreText">Show Buyer ${SHOW+1}–${SHOW+rest.length}</span>
+          <span id="toggleMoreArrow" style="transition:transform .3s;">▼</span>
+        </button>
+      </div>
+      <div id="hiddenBuyersGrid" class="buyers-grid" style="display:none;margin-top:12px;">
+        ${hiddenCards}
+      </div>`;
+  }
+  // Build stage characters
+  const scene=document.getElementById('stageScene');
+  scene.innerHTML=`
+    <svg class="stage-lines" id="stageLines" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>
+    <div class="char" id="charSeller" style="top:8%;left:50%;transform:translateX(-50%);">
+      <div class="char-face" id="charSellerFace" style="background:${c.c}15">${SELLER_EMOJI}</div>
+      <div class="char-name">Seller ${sellerIdx+1}</div>
+      <div class="char-status" id="charSellerStatus"></div>
+    </div>
+    ${vis.map((bl,i)=>{
+      const bc2=mc(bl.buyer_model);
+      const pos=buyerPositions[i]||buyerPositions[0];
+      return `<div class="char" id="charB${i}" style="top:${pos.top}%;left:${pos.left}%;transform:translateX(-50%);opacity:.35;">
+        <div class="char-face" id="charB${i}Face" style="background:${bc2.c}15">${BUYER_EMOJIS[i%BUYER_EMOJIS.length]}</div>
+        <div class="char-name">Buyer ${i+1}</div>
+        <div class="char-status" id="charB${i}Status"></div>
+      </div>`;
+    }).join('')}`;
+  document.getElementById('stageStatus').textContent='Waiting to start...';
+  setP('Ready');
+}
+
+// Stage animation helpers
+function stageMsg(charId,msg){
+  const el=document.getElementById(charId);if(!el)return;
+  el.querySelectorAll('.char-bubble').forEach(b=>b.remove());
+  if(!msg)return;
+  const b=document.createElement('div');b.className='char-bubble';b.textContent=msg;
+  el.appendChild(b);
+}
+function stageStatus(msg){document.getElementById('stageStatus').textContent=msg;}
+function stageCharOpacity(id,op){const el=document.getElementById(id);if(el)el.style.opacity=op;}
+function stageCharMove(id,top){const el=document.getElementById(id);if(el)el.style.top=top;}
+function stageCharFace(id,cls){
+  const el=document.getElementById(id+'Face');if(!el)return;
+  const bg=el.style.background;
+  el.className='char-face';if(cls)el.classList.add(cls);
+  el.style.background=bg;
+}
+function stageCharStatus(id,txt){const el=document.getElementById(id+'Status');if(el)el.textContent=txt||'';}
+function stageLines(pairs,color){
+  const svg=document.getElementById('stageLines');if(!svg)return;
+  svg.innerHTML=pairs.map(([x1,y1,x2,y2])=>
+    `<line class="stage-line" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" />`
+  ).join('');
+}
+function stageClearLines(){const svg=document.getElementById('stageLines');if(svg)svg.innerHTML='';}
+function stageParticle(emoji,left,top){
+  const scene=document.getElementById('stageScene');if(!scene)return;
+  const p=document.createElement('div');p.className='stage-particle';
+  p.textContent=emoji;p.style.left=left+'%';p.style.top=top+'%';
+  scene.appendChild(p);setTimeout(()=>p.remove(),2500);
+}
+let particleTimer=null;
+function startParticles(emojis,positions){
+  stopParticles();
+  particleTimer=setInterval(()=>{
+    const pos=positions[Math.floor(Math.random()*positions.length)];
+    const em=emojis[Math.floor(Math.random()*emojis.length)];
+    stageParticle(em,pos[0]+Math.random()*10-5,pos[1]-5);
+  },600/speed);
+}
+function stopParticles(){if(particleTimer){clearInterval(particleTimer);particleTimer=null;}}
+
+// ===== Simulation =====
+async function runSim(){
+  playing=true;
+  document.getElementById('btnPlay').textContent='⏸';
+  document.getElementById('btnPlay').classList.add('playing');
+  const p=sim.products[pIdx],bc=p.broadcasts[seller];
+  const allSimLogs=p.buyer_logs.filter(bl=>bl.seller_model===seller&&ALLOWED_MODELS.includes(bl.buyer_model));
+  const SIMPREF=['Qwen-235B','Gemini-3.1-Pro','GPT-5.4','DeepSeek-V3.2','GPT-oss-120B'];
+  const sortedLogs=SIMPREF.map(m=>allSimLogs.find(bl=>bl.buyer_model===m)).filter(Boolean);
+  const logs=sortedLogs.slice(0,3);
+  const hiddenLogs=sortedLogs.slice(3);
+  // === STAGE: Strategy ===
+  stageCharFace('charSeller','thinking');
+  stageMsg('charSeller','💡 Thinking...');
+  stageCharStatus('charSeller','Planning strategy');
+  stageStatus('Seller is analyzing the product...');
+  startParticles(['💡','📝','🎯','📊','🧠'],[[50,15]]);
+  setP('🎯 Planning strategy...');
+  await typeInto('stratTyped','stratCursor','strategyBox',bc.seller_strategy||'');if(!playing)return;
+  stopParticles();
+
+  // === STAGE: Broadcasting ===
+  stageCharFace('charSeller','presenting');
+  stageMsg('charSeller','📢 ON AIR!');
+  stageCharStatus('charSeller','Live selling!');
+  stageStatus('Broadcasting to buyers...');
+  logs.forEach((_,i)=>{
+    stageCharOpacity(`charB${i}`,1);
+    stageMsg(`charB${i}`,'👀');
+    stageCharFace(`charB${i}`,'excited');
+    stageCharStatus(`charB${i}`,'Watching');
+  });
+  // Draw lines from seller to buyers
+  const bPos=buyerPositions;
+  stageLines(bPos.map(p=>[50,22,p.left,p.top-5]),'rgba(255,107,107,.25)');
+  document.getElementById('bcArrow').classList.add('vis');
+  await w(800/speed);
+  setP('📺 Broadcasting...');
+  const reactionInterval=setInterval(()=>{
+    if(!playing){clearInterval(reactionInterval);return;}
+    spawnReaction(Math.floor(Math.random()*Math.min(3,logs.length)));
+  },800/speed);
+  startParticles(['❤️','👍','🔥','✨'],bPos.map(p=>[p.left,p.top]));
+  // Buyer reactions during broadcast
+  const bcReactTimer=setInterval(()=>{
+    if(!playing){clearInterval(bcReactTimer);return;}
+    const ri=Math.floor(Math.random()*Math.min(3,logs.length));
+    const reactions=['👀','😲','🤩','😮','👏','💕','🙌'];
+    stageMsg(`charB${ri}`,reactions[Math.floor(Math.random()*reactions.length)]);
+  },2500/speed);
+  await typeInto('scriptTyped','sCursor','scriptBox',bc.script);
+  clearInterval(reactionInterval);clearInterval(bcReactTimer);stopParticles();
+  if(!playing)return;
+
+  // === STAGE: Q&A ===
+  stageCharFace('charSeller','talking');
+  stageMsg('charSeller','💬 Ask me!');
+  stageCharStatus('charSeller','Answering');
+  stageStatus('Buyers are asking questions...');
+  stageLines(bPos.map(p=>[50,22,p.left,p.top-12]),'rgba(52,152,219,.35)');
+  logs.forEach((_,i)=>{
+    stageMsg(`charB${i}`,'🙋 Question!');
+    stageCharMove(`charB${i}`,'48%');
+    stageCharFace(`charB${i}`,'talking');
+    stageCharStatus(`charB${i}`,'Asking');
+    const tag=document.getElementById(`tag${i}`);
+    if(tag){tag.className='bc-tag';tag.innerHTML='<span class="interact-badge">💬 chatting</span>';}
+  });
+  startParticles(['💬','❓','🗣️','💭'],[[50,30],[30,45],[70,45]]);
+  setP('💬 Buyers chatting...');
+  await Promise.all(logs.map((bl,i)=>runQA(bl,i)));if(!playing)return;
+  stopParticles();stageClearLines();
+
+  // === STAGE: Deciding ===
+  stageClearLines();
+  stageCharFace('charSeller','');
+  stageMsg('charSeller','🫣 Nervous...');
+  stageCharStatus('charSeller','Waiting');
+  stageStatus('Buyers are deliberating...');
+  logs.forEach((_,i)=>{
+    stageMsg(`charB${i}`,'🤔 Hmm...');
+    stageCharMove(`charB${i}`,'60%');
+    stageCharFace(`charB${i}`,'thinking');
+    stageCharStatus(`charB${i}`,'Deciding');
+  });
+  setP('🤔 Deciding...');
+  await Promise.all(logs.map((bl,i)=>runDec(bl,i)));if(!playing)return;
+
+  // Update stage with decisions — rich expressions
+  logs.forEach((bl,i)=>{
+    const bought=bl.purchase_decision.will_purchase;
+    const sentiment=bl.purchase_decision.sentiment;
+    if(bought){
+      stageMsg(`charB${i}`,'🎉 Bought!');
+      stageCharFace(`charB${i}`,'celebrate');
+      setTimeout(()=>stageCharFace(`charB${i}`,'glow-green'),1000);
+      stageCharStatus(`charB${i}`, sentiment==='Positive'?'😊 Satisfied':'😐 Okay');
+      const pos=buyerPositions[i];
+      for(let k=0;k<5;k++) setTimeout(()=>stageParticle(['🎉','🎊','✨','🛒','💚'][k],pos.left+Math.random()*10-5,pos.top-10),k*150);
+    } else {
+      stageMsg(`charB${i}`, sentiment==='Negative'?'😒 Not interested':'🤔 Maybe later');
+      stageCharFace(`charB${i}`,'wave');
+      setTimeout(()=>{stageCharFace(`charB${i}`,'sad');stageCharMove(`charB${i}`,'70%');},500);
+      setTimeout(()=>stageCharFace(`charB${i}`,'shrink'),1200);
+      stageCharStatus(`charB${i}`, '👋 Left');
+    }
+  });
+  const boughtCount=logs.filter(bl=>bl.purchase_decision.will_purchase).length;
+  stageMsg('charSeller', boughtCount>=2?'😊':'😅');
+  stageStatus(`${boughtCount}/${logs.length} buyers purchased`);
+  await w(1500/speed);
+
+  // === STAGE: Issue ===
+  stageStatus('⚠️ Issues reported...');
+  stageMsg('charSeller','😰 Oh no...');
+  stageCharFace('charSeller','angry');
+  logs.forEach((bl,i)=>{
+    if(bl.purchase_decision.will_purchase){
+      stageMsg(`charB${i}`,'😟 Problem!');
+      stageCharFace(`charB${i}`,'angry');
+      setTimeout(()=>stageCharFace(`charB${i}`,'glow-red'),400);
+      stageCharStatus(`charB${i}`,'Unhappy');
+      stageCharMove(`charB${i}`,'55%');
+    }
+  });
+  stageLines(logs.map((bl,i)=>bl.purchase_decision.will_purchase?[50,22,buyerPositions[i].left,buyerPositions[i].top-15]:null).filter(Boolean),'rgba(231,76,60,.3)');
+  setP('⚠️ Issue occurred...');
+  await Promise.all(logs.map((bl,i)=>runIssue(bl,i)));if(!playing)return;
+
+  // === STAGE: CS ===
+  stageClearLines();
+  stageMsg('charSeller','🤝 Let me help');
+  stageCharFace('charSeller','talking');
+  stageStatus('Resolving issues...');
+  stageLines(logs.map((bl,i)=>bl.purchase_decision.will_purchase?[50,22,buyerPositions[i].left,buyerPositions[i].top-15]:null).filter(Boolean),'rgba(52,152,219,.3)');
+  logs.forEach((bl,i)=>{
+    if(bl.purchase_decision.will_purchase){
+      stageMsg(`charB${i}`,'📞');
+      stageCharMove(`charB${i}`,'50%');
+      stageCharFace(`charB${i}`,'talking');
+    }
+  });
+  setP('📞 Post-purchase...');
+  await Promise.all(logs.map((bl,i)=>runCS(bl,i)));if(!playing)return;
+
+  // Update after CS resolution
+  stageClearLines();
+  logs.forEach((bl,i)=>{
+    if(!bl.purchase_decision.will_purchase) return;
+    const oc=bl.post_cs_outcome?.outcome;
+    const pos=buyerPositions[i];
+    if(oc==='refunded'){
+      stageMsg(`charB${i}`,'💰 Refunded');
+      stageCharFace(`charB${i}`,'glow-red');
+      stageCharStatus(`charB${i}`,'😤');
+      stageCharMove(`charB${i}`,'68%');
+      stageParticle('💸',pos.left,pos.top-10);
+    } else if(oc==='exchanged'){
+      stageMsg(`charB${i}`,'🔄 Exchanged');
+      stageCharFace(`charB${i}`,'happy');
+      setTimeout(()=>stageCharFace(`charB${i}`,'glow-green'),500);
+      stageCharStatus(`charB${i}`,'😊');
+      stageParticle('🔄',pos.left,pos.top-10);
+    } else {
+      stageMsg(`charB${i}`,'✅ Resolved');
+      stageCharFace(`charB${i}`,'happy');
+      setTimeout(()=>stageCharFace(`charB${i}`,'glow-green'),500);
+      stageCharStatus(`charB${i}`,'😊');
+      stageParticle('✅',pos.left,pos.top-10);
+    }
+  });
+  stageMsg('charSeller','');
+  stageCharFace('charSeller','');
+  await w(1200/speed);
+
+  // === STAGE: Review ===
+  stageStatus('✍️ Writing reviews...');
+  stageMsg('charSeller','📋');
+  stageCharFace('charSeller','');
+  stageCharStatus('charSeller','Reading reviews');
+  startParticles(['⭐','✍️','📝'],bPos.map(p=>[p.left,p.top]));
+  logs.forEach((bl,i)=>{
+    const rating=bl.reviews?.product?.rating;
+    const rec=bl.reviews?.product?.would_recommend;
+    stageCharFace(`charB${i}`,'writing');
+    stageCharMove(`charB${i}`,buyerPositions[i].top+'%');
+    if(rating>=4){
+      setTimeout(()=>{
+        stageMsg(`charB${i}`,'⭐'.repeat(Math.min(rating,5)));
+        stageCharFace(`charB${i}`,'glow-green');
+        stageCharStatus(`charB${i}`,'👍 Great!');
+      },800);
+    } else if(rating>=3){
+      setTimeout(()=>{
+        stageMsg(`charB${i}`,'⭐'.repeat(rating));
+        stageCharFace(`charB${i}`,'');
+        stageCharStatus(`charB${i}`, rec?'👍 OK':'👎 Meh');
+      },800);
+    } else {
+      setTimeout(()=>{
+        stageMsg(`charB${i}`,rating?'⭐':'😤');
+        stageCharFace(`charB${i}`,'sad');
+        stageCharStatus(`charB${i}`,'👎 Bad');
+      },800);
+    }
+  });
+  setP('⭐ Reviews...');
+  await Promise.all(logs.map((bl,i)=>runRev(bl,i)));
+
+  // === STAGE: Done ===
+  stopParticles();stageClearLines();
+  stageMsg('charSeller','✅ Done!');
+  stageCharFace('charSeller','happy');
+  logs.forEach((_,i)=>{stageMsg(`charB${i}`,'');});
+  stageStatus('🏁 Simulation complete!');
+  // Fill hidden buyer cards with results (no animation)
+  hiddenLogs.forEach((bl,j)=>{
+    const idx=3+j;
+    fillHiddenBuyer(bl,idx);
+  });
+  setP('📊 Statistics');showStats();
+  setP('✅ Done!');stopAll();
+}
+
+function typeInto(typedId,curId,boxId,text){
+  return new Promise(res=>{
+    const el=document.getElementById(typedId),cur=document.getElementById(curId),box=document.getElementById(boxId);
+    el.textContent='';if(!text){cur.style.display='none';res();return;}
+    if(speed>=100){
+      // Instant mode
+      el.textContent=text;cur.style.display='none';box.scrollTop=box.scrollHeight;res();return;
+    }
+    cur.style.display='inline-block';let idx=0;
+    const t=setInterval(()=>{
+      if(!playing){clearInterval(t);res();return;}
+      if(idx<text.length){const end=Math.min(idx+5,text.length);el.textContent+=text.slice(idx,end);idx=end;box.scrollTop=box.scrollHeight;}
+      else{clearInterval(t);cur.style.display='none';res();}
+    },12/speed);timers.push(t);
+  });
+}
+
+async function runQA(bl,i){
+  const hist=bl.pre_purchase_history||[];if(!hist.length)return;
+  show(`sq${i}`);const chat=document.getElementById(`cq${i}`);
+  // Show selected inquiry topics first
+  if(bl.pre_inquiry_categories&&bl.pre_inquiry_categories.length){
+    const topicDiv=document.createElement('div');
+    topicDiv.style.cssText='display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px;';
+    topicDiv.innerHTML=bl.pre_inquiry_categories.map(c=>
+      `<span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:12px;background:var(--blue-soft);color:var(--blue);">🏷️ ${c}</span>`
+    ).join('');
+    chat.appendChild(topicDiv);
+    await w(800/speed);
+  }
+  for(let j=0;j<hist.length;j++){
+    if(!playing)return;
+    addBbl(chat,hist[j].role,hist[j].role==='buyer'?bl.buyer_model:seller,hist[j].content,i);
+    await w(1200/speed);
+  }
+  // End of pre-purchase Q&A
+  const endDiv=document.createElement('div');
+  endDiv.style.cssText='margin-top:4px;padding:6px 10px;background:var(--surface2);border-radius:8px;font-size:11px;color:var(--text2);text-align:center;animation:si .3s ease-out;';
+  endDiv.textContent='✅ Pre-purchase inquiry ended — proceeding to purchase decision.';
+  chat.appendChild(endDiv);
+  chat.scrollTop=chat.scrollHeight;
+}
+
+async function runDec(bl,i){
+  show(`sd${i}`);
+  const el=document.getElementById(`cd${i}`),tag=document.getElementById(`tag${i}`);
+  const pd=bl.purchase_decision;
+
+  // Thinking cloud (neutral — no color hint!)
+  const tk=document.createElement('div');tk.className='think-cloud';
+  tk.innerHTML=`<span class="think-emoji">🤔</span><span class="think-text">Hmm, should I buy this?<span class="dtl"><span></span><span></span><span></span></span></span>`;
+  el.appendChild(tk);
+  await w(2500/speed);if(!playing)return;tk.remove();
+
+  // Decision reveal
+  const div=document.createElement('div');
+  if(pd.will_purchase){
+    div.className='dec bought';
+    const confetti=makeConfetti();
+    div.innerHTML=`${confetti}<div class="dec-i">🎉</div><div class="dec-l g">Purchased!</div><div class="dec-q">Qty: ${pd.quantity}</div><div class="dec-rs">${esc(pd.reason)}</div>`;
+    tag.className='bc-tag tb';tag.textContent='🛒 bought';
+  }else{
+    div.className='dec passed';
+    div.innerHTML=`<div class="dec-i">🤷</div><div class="dec-l r">Decided to pass</div><div class="dec-rs">${esc(pd.reason)}</div>`;
+    tag.className='bc-tag tp';tag.textContent='passed';
+  }
+  el.appendChild(div);await w(1000/speed);
+}
+
+function makeConfetti(){
+  const colors=['#ff6b6b','#ffd93d','#6bcb77','#4d96ff','#ff6bcb','#ffa36c'];
+  let html='<div class="confetti">';
+  for(let i=0;i<12;i++){
+    const c=colors[i%colors.length];
+    const left=10+Math.random()*80;
+    const delay=Math.random()*0.5;
+    const size=4+Math.random()*4;
+    html+=`<i style="background:${c};left:${left}%;top:20%;animation-delay:${delay}s;width:${size}px;height:${size}px;"></i>`;
+  }
+  return html+'</div>';
+}
+
+async function runIssue(bl,i){
+  if(!bl.purchase_decision.will_purchase)return;
+  const hist=bl.post_purchase_history||[];if(!hist.length)return;
+  // Get issue type from product or scenario
+  const p=sim.products[pIdx];
+  const issueType=p.post_inquiry_type||bl.scenario?.post_inquiry_types?.[0]||'issue reported';
+  const issueIcons={'not as described':'📦','wrong item received':'🔀','damaged on arrival':'💥','shipping delay':'🕐','change of mind':'💭'};
+  show(`si${i}`);
+  document.getElementById(`ci${i}`).innerHTML=`
+    <div class="issue-alert">
+      <div class="issue-icon">${issueIcons[issueType]||'⚠️'}</div>
+      <div class="issue-body">
+        <div class="issue-title">Issue Occurred</div>
+        <div class="issue-desc">${issueType.charAt(0).toUpperCase()+issueType.slice(1)}</div>
+      </div>
+    </div>`;
+  await w(2000/speed);
+}
+
+async function runCS(bl,i){
+  if(!bl.purchase_decision.will_purchase)return;
+  const hist=bl.post_purchase_history||[];if(!hist.length)return;
+  show(`sc${i}`);const chat=document.getElementById(`cc${i}`);
+  for(let j=0;j<hist.length;j++){
+    if(!playing)return;
+    addBbl(chat,hist[j].role,hist[j].role==='buyer'?bl.buyer_model:seller,hist[j].content,i);
+    await w(1800/speed);
+  }
+  if(bl.post_cs_outcome){
+    const oc=bl.post_cs_outcome.outcome,ic={refunded:'💰',exchanged:'🔄',delivered:'📦'};
+    const msgs={refunded:'Refund has been processed.',exchanged:'Exchange has been arranged.',delivered:'Issue resolved — no further action.'};
+    document.getElementById(`cr${i}`).innerHTML=`
+      <span class="cs-b ${oc}">${ic[oc]||'📋'} ${oc.toUpperCase()}</span>
+      <div style="margin-top:6px;padding:8px 10px;background:var(--surface2);border-radius:8px;font-size:11px;color:var(--text2);text-align:center;animation:si .3s ease-out;">
+        ✅ CS conversation ended — ${msgs[oc]||'Case closed.'}
+      </div>`;
+  }await w(500/speed);
+}
+
+async function runRev(bl,i){
+  const r=bl.reviews;if(!r)return;
+  show(`sr${i}`);const el=document.getElementById(`rv${i}`);
+  const st=n=>'★'.repeat(n)+'☆'.repeat(5-n);
+  const rows=[['Broadcast',r.broadcast],['Pre-CS',r.pre_inquiry],['Post-CS',r.post_inquiry],['Product',r.product]].filter(([,v])=>v&&v.rating!=null);
+  el.innerHTML=`<div class="rvw">
+    ${rows.map(([l,rv])=>`<div class="rv-r"><span class="rv-l">${l}</span><span class="rv-s">${st(rv.rating)}</span></div>`).join('')}
+    ${r.product&&r.product.review_text?`<div class="rv-q">"${esc(r.product.review_text)}"</div>`:''}
+    ${r.product?`<span class="rct ${r.product.would_recommend?'y':'n'}">${r.product.would_recommend?'👍 Recommend':'👎 Not Recommend'}</span>`:''}
+  </div>`;await w(300/speed);
+}
+
+// ===== Stats =====
+function personaTagsHTML(model,role){
+  const p=PERSONA[model];if(!p)return '';
+  const d=role==='seller'?p.seller:p.buyer;
+  const tag=(label,val,col)=>`<span style="font-size:9px;padding:1px 6px;border-radius:4px;background:${col}15;color:${col};font-weight:700;white-space:nowrap;">${label} ${Math.round(val)}%</span>`;
+  if(role==='seller'){
+    return [
+      tag(d.Assertive>=50?'Assertive':'Passive', d.Assertive>=50?d.Assertive:100-d.Assertive, PCOLORS.Assertive),
+      tag(d.Friendly>=50?'Friendly':'Reserved', d.Friendly>=50?d.Friendly:100-d.Friendly, PCOLORS.Friendly),
+      tag(d.Rational>=50?'Rational':'Emotional', d.Rational>=50?d.Rational:100-d.Rational, PCOLORS.Rational),
+    ].join(' ');
+  }else{
+    return [
+      tag(d.Picky>=50?'Picky':'Easygoing', d.Picky>=50?d.Picky:100-d.Picky, PCOLORS.Picky),
+      tag(d.PriceSens>=50?'Price-Sensitive':'Indifferent', d.PriceSens>=50?d.PriceSens:100-d.PriceSens, PCOLORS.PriceSens),
+      tag(d.Rational>=50?'Rational':'Emotional', d.Rational>=50?d.Rational:100-d.Rational, PCOLORS.Rational),
+    ].join(' ');
+  }
+}
+
+function showStats(){
+  // Add current product to completed set
+  completedProducts.add(pIdx);
+
+  // Gather logs from ALL completed products
+  const allLogs=[];
+  completedProducts.forEach(pi=>{
+    const p=sim.products[pi];
+    p.buyer_logs.forEach(bl=>{
+      if(ALLOWED_MODELS.includes(bl.seller_model)&&ALLOWED_MODELS.includes(bl.buyer_model))
+        allLogs.push(bl);
+    });
+  });
+  const n=allLogs.length;if(!n)return;
+  const nProds=completedProducts.size;
+
+  const sellers=[...new Set(allLogs.map(bl=>bl.seller_model))];
+  const buyers=[...new Set(allLogs.map(bl=>bl.buyer_model))];
+  sellers.sort((a,b)=>ALLOWED_MODELS.indexOf(a)-ALLOWED_MODELS.indexOf(b));
+  const STAT_PREF=['Qwen-235B','Gemini-3.1-Pro','GPT-5.4','DeepSeek-V3.2','GPT-oss-120B'];
+  buyers.sort((a,b)=>STAT_PREF.indexOf(a)-STAT_PREF.indexOf(b));
+
+  const avg=(arr)=>arr.length?Math.round(arr.reduce((a,b)=>a+b,0)/arr.length*10)/10:'-';
+  const stars=v=>{if(v==='-')return '-';return '★'.repeat(Math.floor(v))+'☆'.repeat(5-Math.floor(v))+` ${v}`;};
+
+  // Net purchase = purchased AND not refunded
+  const isNetPurchase=bl=>bl.purchase_decision.will_purchase&&bl.post_cs_outcome?.outcome!=='refunded';
+
+  // Per-seller stats
+  const sellerRows=sellers.map((m,idx)=>{
+    const sl=allLogs.filter(bl=>bl.seller_model===m);
+    const bought=sl.filter(isNetPurchase).length;
+    const rate=Math.round(bought/sl.length*100);
+    const purchased=sl.filter(bl=>bl.purchase_decision.will_purchase).length;
+    const refunded=sl.filter(bl=>bl.post_cs_outcome?.outcome==='refunded').length;
+    const refundRate=purchased>0?Math.round(refunded/purchased*100):0;
+    return `<div class="stat-row">
+      <span class="stat-label" style="flex-direction:column;align-items:flex-start;gap:3px;">
+        <span>Seller ${idx+1}</span>
+        <span style="display:flex;gap:3px;flex-wrap:wrap;">${personaTagsHTML(m,'seller')}</span>
+      </span>
+      <span class="stat-val" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+        <span style="color:var(--green);font-weight:800;">Sell ${rate}%</span>
+        <span class="stat-bar-wrap"><span class="stat-bar-fill" style="width:${rate}%;background:var(--green);"></span></span>
+        <span style="color:var(--red);font-size:10px;font-weight:700;">Refund ${refundRate}%</span>
+      </span>
+    </div>`;
+  }).join('');
+
+  // Seller averages
+  const allBought=allLogs.filter(isNetPurchase).length;
+  const avgRate=Math.round(allBought/n*100);
+  const allPurchased=allLogs.filter(bl=>bl.purchase_decision.will_purchase).length;
+  const allRefunded=allLogs.filter(bl=>bl.post_cs_outcome?.outcome==='refunded').length;
+  const avgRefundRate=allPurchased>0?Math.round(allRefunded/allPurchased*100):0;
+  const avgBcR=avg(allLogs.map(bl=>bl.reviews?.broadcast?.rating).filter(v=>v!=null));
+  const avgPreR=avg(allLogs.map(bl=>bl.reviews?.pre_inquiry?.rating).filter(v=>v!=null));
+  const avgPostR=avg(allLogs.map(bl=>bl.reviews?.post_inquiry?.rating).filter(v=>v!=null));
+
+  // Per-buyer stats
+  const buyerRows=buyers.map((m,idx)=>{
+    const bl2=allLogs.filter(bl=>bl.buyer_model===m);
+    const bought=bl2.filter(isNetPurchase).length;
+    const rate=Math.round(bought/bl2.length*100);
+    const bPurchased=bl2.filter(bl=>bl.purchase_decision.will_purchase).length;
+    const bRefunded=bl2.filter(bl=>bl.post_cs_outcome?.outcome==='refunded').length;
+    const bRefundRate=bPurchased>0?Math.round(bRefunded/bPurchased*100):0;
+    const prodR=avg(bl2.map(bl=>bl.reviews?.product?.rating).filter(v=>v!=null));
+    const sent={P:0,Nu:0,Ne:0};
+    bl2.forEach(bl=>{const s=bl.purchase_decision.sentiment;if(s==='Positive')sent.P++;else if(s==='Neutral')sent.Nu++;else if(s==='Negative')sent.Ne++;});
+    return `<div class="stat-row">
+      <span class="stat-label" style="flex-direction:column;align-items:flex-start;gap:3px;">
+        <span>Buyer ${idx+1}</span>
+        <span style="display:flex;gap:3px;flex-wrap:wrap;">${personaTagsHTML(m,'buyer')}</span>
+      </span>
+      <span class="stat-val" style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">
+        <span style="color:var(--green);font-weight:800;">Buy ${rate}%</span>
+        <span class="stat-bar-wrap"><span class="stat-bar-fill" style="width:${rate}%;background:var(--green);"></span></span>
+        <span style="color:var(--red);font-size:10px;font-weight:700;">Refund ${bRefundRate}%</span>
+        <span style="color:var(--yellow);font-size:10px;">${stars(prodR)}</span>
+        <span style="font-size:10px;">😊${sent.P} 😐${sent.Nu} 😞${sent.Ne}</span>
+      </span>
+    </div>`;
+  }).join('');
+
+  // Buyer averages
+  const avgProdR=avg(allLogs.map(bl=>bl.reviews?.product?.rating).filter(v=>v!=null));
+  const recommend=allLogs.filter(bl=>bl.reviews?.product?.would_recommend).length;
+  const reviewed=allLogs.filter(bl=>bl.reviews?.product?.would_recommend!=null).length;
+  const outcomes={refunded:0,exchanged:0,delivered:0};
+  allLogs.forEach(bl=>{const o=bl.post_cs_outcome?.outcome;if(o)outcomes[o]=(outcomes[o]||0)+1;});
+
+  // Post-CS issue categories
+  const issueMap={};
+  completedProducts.forEach(pi=>{
+    const p=sim.products[pi];
+    if(p.post_inquiry_type){issueMap[p.post_inquiry_type]=(issueMap[p.post_inquiry_type]||0)+1;}
+  });
+  const issueIcons={'not as described':'📦','wrong item received':'🔀','damaged on arrival':'💥','shipping delay':'🕐','change of mind':'💭'};
+
+  // Per-buyer pre-CS topic distribution (simple tags)
+  const topicMeta={
+    'product specifications':['📋','Specs','#2e7d32','#e8f5e9'],
+    'price / discounts':['💰','Price','#e65100','#fff3e0'],
+    'shipping time and cost':['🚚','Ship','#1565c0','#e3f2fd'],
+    'comparison with other products':['🔍','Compare','#7b1fa2','#f3e5f5'],
+  };
+  const buyerTopicRows=buyers.map((m,idx)=>{
+    const bl2=allLogs.filter(bl=>bl.buyer_model===m);
+    const topicCount={};
+    bl2.forEach(bl=>{(bl.pre_inquiry_categories||[]).forEach(c=>{topicCount[c]=(topicCount[c]||0)+1;});});
+    const total=Object.values(topicCount).reduce((a,b)=>a+b,0);
+    if(!total) return '';
+    const tags=Object.entries(topicCount).sort((a,b)=>b[1]-a[1]).map(([t,cnt])=>{
+      const pct=Math.round(cnt/total*100);
+      const tm=topicMeta[t]||['🏷️','?','#666','#eee'];
+      return `<span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:${tm[3]};color:${tm[2]};">${tm[0]} ${tm[1]} ${pct}%</span>`;
+    }).join(' ');
+    return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:5px;">
+      <div style="width:70px;flex-shrink:0;font-size:11px;font-weight:800;">${BUYER_EMOJIS[idx%BUYER_EMOJIS.length]} Buyer ${idx+1}</div>
+      <div style="display:flex;gap:4px;flex-wrap:wrap;">${tags}</div>
+    </div>`;
+  }).filter(Boolean).join('');
+
+  // Find Best Seller
+  const isNetPurchaseBest=bl=>bl.purchase_decision.will_purchase&&bl.post_cs_outcome?.outcome!=='refunded';
+  const sellerStats=sellers.map((m,idx)=>{
+    const sl=allLogs.filter(bl=>bl.seller_model===m);
+    const bought=sl.filter(isNetPurchaseBest).length;
+    const rate=bought/sl.length;
+    const bcR=avg(sl.map(bl=>bl.reviews?.broadcast?.rating).filter(v=>v!=null));
+    const preR=avg(sl.map(bl=>bl.reviews?.pre_inquiry?.rating).filter(v=>v!=null));
+    return {model:m, idx, rate, bought, total:sl.length, bcR, preR};
+  });
+  const best=sellerStats.reduce((a,b)=>a.rate>b.rate?a:(a.rate===b.rate&&a.bcR>b.bcR?a:b));
+  const bestPersona=personaTagsHTML(best.model,'seller');
+
+  document.getElementById('bestBanner').innerHTML=`
+    <div class="best-banner">
+      <div class="best-trophy">🏆</div>
+      <div class="best-info">
+        <div class="best-title">Best Seller</div>
+        <div class="best-name">Seller ${best.idx+1}</div>
+        <div class="best-detail">
+          <span class="best-stat">📈 Purchase Rate ${Math.round(best.rate*100)}% (${best.bought}/${best.total})</span>
+          <span class="best-stat">⭐ Broadcast ${best.bcR}</span>
+          <span class="best-stat">💬 Pre-CS ${best.preR}</span>
+        </div>
+        <div style="margin-top:4px;">${bestPersona}</div>
+      </div>
+    </div>`;
+
+  const panel=document.getElementById('statsPanel');
+  document.querySelector('.stats-head').innerHTML=`📊 Simulation Statistics for ${nProds} product${nProds>1?'s':''} <span style="font-size:10px;font-weight:500;color:var(--dim);margin-left:8px;">Aggregated across simulated products. Run a new product to update; re-running the same product won't change stats.</span>`;
+  const body=document.getElementById('statsBody');
+  body.innerHTML=`
+    <div class="stats-col">
+      <div class="stats-col-title">🧑‍💼 Seller Performance (${nProds} product${nProds>1?'s':''} × ${sellers.length} sellers × ${buyers.length} buyers = ${n} pairs)</div>
+      ${sellerRows}
+      <div class="stat-row" style="border-top:2px solid var(--border);margin-top:4px;padding-top:6px;">
+        <span class="stat-label" style="font-weight:800">Average</span>
+        <span class="stat-val" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+          <span style="color:var(--green);font-weight:800;">Sell ${avgRate}%</span>
+          <span class="stat-bar-wrap"><span class="stat-bar-fill" style="width:${avgRate}%;background:var(--accent);"></span></span>
+          <span style="color:var(--red);font-size:10px;font-weight:700;">Refund ${avgRefundRate}%</span>
+        </span>
+      </div>
+      <div class="stat-row"><span class="stat-label">Avg Broadcast</span><span class="stat-val" style="color:var(--yellow)">${stars(avgBcR)}</span></div>
+      <div class="stat-row"><span class="stat-label">Avg Pre-CS</span><span class="stat-val" style="color:var(--yellow)">${stars(avgPreR)}</span></div>
+      <div class="stat-row"><span class="stat-label">Avg Post-CS</span><span class="stat-val" style="color:var(--yellow)">${stars(avgPostR)}</span></div>
+    </div>
+    <div class="stats-col">
+      <div class="stats-col-title">👥 Buyer Behavior</div>
+      ${buyerRows}
+      <div class="stat-row" style="border-top:2px solid var(--border);margin-top:4px;padding-top:6px;">
+        <span class="stat-label" style="font-weight:800">Average</span>
+        <span class="stat-val" style="display:flex;align-items:center;gap:6px;">
+          Product <span style="color:var(--yellow)">${stars(avgProdR)}</span>
+          Recommend ${reviewed?Math.round(recommend/reviewed*100)+'%':'-'}
+        </span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">CS Outcomes</span>
+        <span class="stat-pills">
+          ${outcomes.refunded?`<span class="stat-pill" style="background:#fff8e1;color:var(--yellow)">💰 Refund ${outcomes.refunded}</span>`:''}
+          ${outcomes.exchanged?`<span class="stat-pill" style="background:var(--blue-soft);color:var(--blue)">🔄 Exchange ${outcomes.exchanged}</span>`:''}
+          ${outcomes.delivered?`<span class="stat-pill" style="background:var(--green-soft);color:var(--green)">📦 OK ${outcomes.delivered}</span>`:''}
+        </span>
+      </div>
+    </div>
+    </div>
+    <div class="stats-body" style="display:block;">
+    <div style="display:flex;gap:0;">
+    <div class="stats-col" style="flex:1;">
+      <div class="stats-col-title">📞 Post-CS Issue Categories</div>
+      ${Object.entries(issueMap).sort((a,b)=>b[1]-a[1]).map(([type,cnt])=>{
+        const pct=Math.round(cnt/nProds*100);
+        return `<div class="stat-row">
+          <span class="stat-label">${issueIcons[type]||'⚠️'} ${type}</span>
+          <span class="stat-val" style="display:flex;align-items:center;gap:6px;">
+            ${cnt} product${cnt>1?'s':''} (${pct}%)
+            <span class="stat-bar-wrap"><span class="stat-bar-fill" style="width:${pct}%;background:var(--yellow);"></span></span>
+          </span>
+        </div>`;
+      }).join('')}
+    </div>
+    </div>
+    </div>
+    <div class="stats-body" style="display:block;">
+    <div class="stats-col" style="border-left:none;">
+      <div class="stats-col-title">🤝 Seller → Buyer Ranking (by purchase rate)</div>
+      ${sellers.map((sm,si)=>{
+        const sLogs=allLogs.filter(bl=>bl.seller_model===sm);
+        const buyerRates=buyers.map((bm,bi)=>{
+          const pair=sLogs.filter(bl=>bl.buyer_model===bm);
+          const net=pair.filter(isNetPurchase).length;
+          const rate=pair.length?Math.round(net/pair.length*100):0;
+          return {bi,rate};
+        }).sort((a,b)=>b.rate-a.rate);
+        const ranked=buyerRates.map((br,ri)=>{
+          const col=br.rate>=70?'var(--green)':br.rate>=40?'var(--yellow)':'var(--red)';
+          return `<span style="display:inline-flex;align-items:center;gap:2px;font-size:11px;font-weight:700;color:${col};">${BUYER_EMOJIS[br.bi%BUYER_EMOJIS.length]}B${br.bi+1}<span style="font-size:9px;font-weight:500;color:var(--dim);">(${br.rate}%)</span></span>`;
+        }).join('<span style="color:var(--dim);margin:0 3px;font-size:10px;">›</span>');
+        return `<div class="stat-row">
+          <span class="stat-label" style="min-width:60px;">${SELLER_EMOJI} Seller ${si+1}</span>
+          <span style="flex:1;">${ranked}</span>
+        </div>`;
+      }).join('')}
+    </div>
+    </div>`;
+  panel.classList.add('vis');
+}
+
+// ===== Helpers =====
+function addBbl(ct,role,model,text,buyerIdx){
+  const isBuyer=role==='buyer';
+  const emoji=isBuyer?BUYER_EMOJIS[(buyerIdx||0)%BUYER_EMOJIS.length]:SELLER_EMOJI;
+  const name=isBuyer?`Buyer ${(buyerIdx||0)+1}`:'Seller';
+  const c=mc(model);
+  const wrap=document.createElement('div');
+  wrap.className=`bbl-wrap ${isBuyer?'b':'s'}`;
+  wrap.innerHTML=`
+    <div class="bbl-av" style="background:${c.c||'#ccc'}15">${emoji}</div>
+    <div class="bbl ${isBuyer?'b':'s'}" style="max-width:82%;padding:10px 14px;font-size:12px;line-height:1.55;">
+      <div class="bbl-n ${isBuyer?'bn':'sn'}">${name}</div>
+      <div class="bbl-t">${esc(text)}</div>
+    </div>`;
+  ct.appendChild(wrap);ct.scrollTop=ct.scrollHeight;
+}
+function show(id){document.getElementById(id).classList.add('vis');}
+function fillHiddenBuyer(bl,idx){
+  const tag=document.getElementById(`tag${idx}`);
+  const pd=bl.purchase_decision;
+  // Q&A
+  const cq=document.getElementById(`cq${idx}`);
+  if(cq&&bl.pre_purchase_history){
+    show(`sq${idx}`);
+    bl.pre_purchase_history.forEach(m=>{
+      addBbl(cq,m.role,m.role==='buyer'?bl.buyer_model:seller,m.content,idx);
+    });
+  }
+  // Decision
+  const cd=document.getElementById(`cd${idx}`);
+  if(cd){
+    show(`sd${idx}`);
+    const div=document.createElement('div');
+    if(pd.will_purchase){
+      div.className='dec bought';
+      div.innerHTML=`<div class="dec-i">🎉</div><div class="dec-l g">Purchased!</div><div class="dec-q">Qty: ${pd.quantity}</div><div class="dec-rs">${esc(pd.reason)}</div>`;
+      if(tag){tag.className='bc-tag tb';tag.textContent='🛒 bought';}
+    }else{
+      div.className='dec passed';
+      div.innerHTML=`<div class="dec-i">🤷</div><div class="dec-l r">Decided to pass</div><div class="dec-rs">${esc(pd.reason)}</div>`;
+      if(tag){tag.className='bc-tag tp';tag.textContent='passed';}
+    }
+    cd.appendChild(div);
+  }
+  // Issue + CS
+  if(pd.will_purchase&&bl.post_purchase_history&&bl.post_purchase_history.length){
+    const p=sim.products[pIdx];
+    const issueType=p.post_inquiry_type||'issue reported';
+    const issueIcons={'not as described':'📦','wrong item received':'🔀','damaged on arrival':'💥','shipping delay':'🕐','change of mind':'💭'};
+    show(`si${idx}`);
+    document.getElementById(`ci${idx}`).innerHTML=`<div class="issue-alert"><div class="issue-icon">${issueIcons[issueType]||'⚠️'}</div><div class="issue-body"><div class="issue-title">Issue Occurred</div><div class="issue-desc">${issueType.charAt(0).toUpperCase()+issueType.slice(1)}</div></div></div>`;
+    show(`sc${idx}`);
+    const cc=document.getElementById(`cc${idx}`);
+    bl.post_purchase_history.forEach(m=>{addBbl(cc,m.role,m.role==='buyer'?bl.buyer_model:seller,m.content,idx);});
+    if(bl.post_cs_outcome){
+      const oc=bl.post_cs_outcome.outcome,ic={refunded:'💰',exchanged:'🔄',delivered:'📦'};
+      const msgs={refunded:'Refund has been processed.',exchanged:'Exchange has been arranged.',delivered:'Issue resolved.'};
+      document.getElementById(`cr${idx}`).innerHTML=`<span class="cs-b ${oc}">${ic[oc]||'📋'} ${oc.toUpperCase()}</span><div style="margin-top:6px;padding:8px 10px;background:var(--surface2);border-radius:8px;font-size:11px;color:var(--text2);text-align:center;">✅ CS ended — ${msgs[oc]||'Case closed.'}</div>`;
+    }
+  }
+  // Review
+  const r=bl.reviews;
+  if(r){
+    show(`sr${idx}`);
+    const el=document.getElementById(`rv${idx}`);
+    const st=n=>'★'.repeat(n)+'☆'.repeat(5-n);
+    const rows=[['Broadcast',r.broadcast],['Pre-CS',r.pre_inquiry],['Post-CS',r.post_inquiry],['Product',r.product]].filter(([,v])=>v&&v.rating!=null);
+    el.innerHTML=`<div class="rvw">${rows.map(([l,rv])=>`<div class="rv-r"><span class="rv-l">${l}</span><span class="rv-s">${st(rv.rating)}</span></div>`).join('')}${r.product&&r.product.review_text?`<div class="rv-q">"${esc(r.product.review_text)}"</div>`:''}${r.product?`<span class="rct ${r.product.would_recommend?'y':'n'}">${r.product.would_recommend?'👍 Recommend':'👎 Not Recommend'}</span>`:''}</div>`;
+  }
+}
+
+let moreBuyersOpen=false;
+function toggleMoreBuyers(){
+  moreBuyersOpen=!moreBuyersOpen;
+  const grid=document.getElementById('hiddenBuyersGrid');
+  const txt=document.getElementById('toggleMoreText');
+  const arrow=document.getElementById('toggleMoreArrow');
+  if(!grid)return;
+  if(moreBuyersOpen){
+    grid.style.display='grid';
+    grid.querySelectorAll('.buyer-card').forEach(c=>c.style.display='');
+    txt.textContent='Hide';
+    arrow.style.transform='rotate(180deg)';
+  }else{
+    grid.style.display='none';
+    txt.textContent=document.getElementById('toggleMoreBtn').dataset.label||'Show more';
+    arrow.style.transform='';
+  }
+}
+function spawnReaction(buyerIdx){
+  const fr=document.getElementById(`fr${buyerIdx}`);if(!fr)return;
+  const emojis=['❤️','👍','🛒','😍','🔥','👏','✨','💯'];
+  const e=document.createElement('span');
+  e.className='float-emoji';
+  e.textContent=emojis[Math.floor(Math.random()*emojis.length)];
+  e.style.left=Math.random()*20+'px';
+  e.style.animationDelay=Math.random()*0.3+'s';
+  fr.appendChild(e);
+  setTimeout(()=>e.remove(),3000);
+}
+function esc(t){const d=document.createElement('div');d.textContent=t;return d.innerHTML;}
+function w(ms){return new Promise(r=>{const t=setTimeout(r,ms);timers.push(t);});}
+function setP(t){document.getElementById('prog').textContent=t;}
+
+function togglePlay(){if(playing)stopAll();else restart();}
+function restart(){
+  stopAll();
+  document.getElementById('scriptTyped').textContent='';document.getElementById('sCursor').style.display='none';
+  document.getElementById('stratTyped').textContent='';document.getElementById('stratCursor').style.display='none';
+  document.getElementById('bcArrow').classList.remove('vis');
+  document.getElementById('statsPanel').classList.remove('vis');
+  stopParticles();stageClearLines();
+  // Reset stage characters
+  stageMsg('charSeller','');stageCharFace('charSeller','');stageCharStatus('charSeller','');
+  stageStatus('');
+  const logs=sim.products[pIdx].buyer_logs.filter(bl=>bl.seller_model===seller).slice(0,3);
+  logs.forEach((_,i)=>{
+    stageMsg(`charB${i}`,'');stageCharFace(`charB${i}`,'');stageCharStatus(`charB${i}`,'');
+    stageCharOpacity(`charB${i}`,.35);
+    stageCharMove(`charB${i}`,buyerPositions[i].top+'%');
+    ['sq','sd','si','sc','sr'].forEach(s=>{const el=document.getElementById(s+i);if(el)el.classList.remove('vis');});
+    ['cq','cd','ci','cc','cr','rv'].forEach(s=>{const el=document.getElementById(s+i);if(el)el.innerHTML='';});
+    const tag=document.getElementById('tag'+i);
+    if(tag){tag.className='bc-tag tw';tag.textContent='👁 watching';}
+  });
+  runSim();
+}
+function stopAll(){
+  playing=false;timers.forEach(t=>clearTimeout(t));timers=[];
+  document.getElementById('btnPlay').textContent='▶';
+  document.getElementById('btnPlay').classList.remove('playing');
+}
+</script>
+</body>
+</html>
